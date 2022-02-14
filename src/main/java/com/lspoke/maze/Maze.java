@@ -21,14 +21,15 @@ public class Maze {
         int column = 6;
 
         String[][] maze = {
-                {"1","1","1","1","1","1"},
-                {"X","1","0","0","0","1"},
+                {"Y","1","1","1","1","1"},
+                {"0","1","0","0","0","1"},
                 {"0","0","0","1","0","1"},
-                {"0","1","1","1","0","Y"},
+                {"0","1","1","1","0","X"},
                 {"0","0","1","1","1","1"},
                 {"1","0","0","0","0","1"},
                 {"1","1","1","1","1","1"}
         };
+
         for(int i = 0; i< line; i++) {
             for (int j = 0; j < column; j++){
                 System.out.print(maze[i][j]);
@@ -38,18 +39,12 @@ public class Maze {
         System.out.println();
 
         findWay(maze, line, column);
-        System.out.println("Exit from maze");
-        for(int i = 0; i< line; i++) {
-            for (int j = 0; j < column; j++){
-                System.out.print(maze[i][j]);
-            }
-            System.out.println();
-        }
 
     }
     //The function of finding a way out of the maze
     public static void findWay(String[][] maze, int line, int column){
         Stack<Point> stack = new Stack<>();
+        int[][] neighbors = {{0, 1}, {1,0}, {0, -1}, {-1,0}};
         //Find start points
         StartPoints start = findStartPoint(maze, line, column);
         if(start != null) {
@@ -62,95 +57,67 @@ public class Maze {
             //First node
             Point point = new Point(null, i, j);
             stack.push(point);
-
+            boolean isExit = false;
             //Pass through all points. Search exit
-            while (!stack.isEmpty()) {
+            while (!isExit) {
                 Point tmpPoint = stack.pop();
-                if (tmpPoint.j + 1 < column) {
-                    if (!tmpMaze[tmpPoint.i][tmpPoint.j + 1].equals("")) {
-                        if (tmpMaze[tmpPoint.i][tmpPoint.j + 1].equals("0")) {
-                            Point newPoint = new Point(tmpPoint, tmpPoint.i, tmpPoint.j + 1);
-                            stack.push(newPoint);
-                        } else if (tmpMaze[tmpPoint.i][tmpPoint.j + 1].equals("Y")) {
-                            Point newTree = new Point(tmpPoint, tmpPoint.i, tmpPoint.j + 1);
-                            while (!stack.isEmpty()) {
-                                stack.pop();
+                for(int k = 0; k < neighbors.length; k++){
+                    int newI = neighbors[k][0] + tmpPoint.i;
+                    int newJ = neighbors[k][1] + tmpPoint.j;
+                    if(newI < line && newI >=0 && newJ < column && newJ >=0){
+                        if (!tmpMaze[newI][newJ].equals("")) {
+                            if (tmpMaze[newI][newJ].equals("0")) {
+                                Point newPoint = new Point(tmpPoint, newI, newJ);
+                                stack.push(newPoint);
+                            } else if (tmpMaze[newI][newJ].equals("Y")) {
+                                Point newTree = new Point(tmpPoint, newI, newJ);
+                                while (!stack.isEmpty()) {
+                                    stack.pop();
+                                }
+                                stack.push(newTree);
+                                isExit = true;
+                                break;
                             }
-                            stack.push(newTree);
-                            break;
                         }
+                        tmpMaze[newI][newJ] = "";
                     }
                 }
-                if (tmpPoint.i + 1 < line) {
-                    if (!tmpMaze[tmpPoint.i + 1][tmpPoint.j].equals("")) {
-                        if (tmpMaze[tmpPoint.i + 1][tmpPoint.j].equals("0")) {
-                            Point newPoint = new Point(tmpPoint, tmpPoint.i + 1, tmpPoint.j);
-                            stack.push(newPoint);
-                        } else if (tmpMaze[tmpPoint.i + 1][tmpPoint.j].equals("Y")) {
-                            Point newTree = new Point(tmpPoint, tmpPoint.i + 1, tmpPoint.j);
-                            while (!stack.isEmpty()) {
-                                stack.pop();
-                            }
-                            stack.push(newTree);
-                            break;
-                        }
-                    }
+                if (stack.isEmpty()){
+                    System.out.println("Exit is not find");
+                    isExit = true;
                 }
-                if (tmpPoint.j - 1 >= 0) {
-                    if (!tmpMaze[tmpPoint.i][tmpPoint.j - 1].equals("")) {
-                        if (tmpMaze[tmpPoint.i][tmpPoint.j - 1].equals("0")) {
-                            Point newPoint = new Point(tmpPoint, tmpPoint.i, tmpPoint.j - 1);
-                            stack.push(newPoint);
-                        } else if (tmpMaze[tmpPoint.i][tmpPoint.j - 1].equals("Y")) {
-                            Point newPoint = new Point(tmpPoint, tmpPoint.i, tmpPoint.j - 1);
-                            while (!stack.isEmpty()) {
-                                stack.pop();
-                            }
-                            stack.push(newPoint);
-                            break;
-                        }
-                    }
-                }
-                if (tmpPoint.i - 1 >= 0) {
-                    if (!tmpMaze[tmpPoint.i - 1][tmpPoint.j].equals("")) {
-                        if (tmpMaze[tmpPoint.i - 1][tmpPoint.j].equals("0")) {
-                            Point newPoint = new Point(tmpPoint, tmpPoint.i - 1, tmpPoint.j);
-                            stack.push(newPoint);
-                        } else if (tmpMaze[tmpPoint.i - 1][tmpPoint.j].equals("Y")) {
-                            Point newTree = new Point(tmpPoint, tmpPoint.i - 1, tmpPoint.j);
-                            while (!stack.isEmpty()) {
-                                stack.pop();
-                            }
-                            stack.push(newTree);
-                            break;
-                        }
-                    }
-                }
-                tmpMaze[tmpPoint.i][tmpPoint.j] = "";
             }
-
-            Point tr = stack.pop();
-            // Exit route
-            while (tr.previous != null) {
-                if (!maze[tr.i][tr.j].equals("Y")) {
-                    maze[tr.i][tr.j] = "+";
+            if (!stack.isEmpty()){
+                Point tr = stack.pop();
+                // Exit route
+                while (tr.previous != null) {
+                    if (!maze[tr.i][tr.j].equals("Y")) {
+                        maze[tr.i][tr.j] = "+";
+                    }
+                    tr = tr.previous;
                 }
-                tr = tr.previous;
+                System.out.println("Exit from maze");
+                for(int k = 0; k < line; k++) {
+                    for (int h = 0; h < column; h++){
+                        System.out.print(maze[k][h]);
+                    }
+                    System.out.println();
+                }
             }
         }else{
             System.out.println("Start point is not find");
         }
     }
     public static void copyMaze(String[][] original, String[][] copy, int line, int column){
-        for(int i = 0; i < line; i++){
+        for (int i = 0; i < line; i++){
             if (column >= 0) System.arraycopy(original[i], 0, copy[i], 0, column);
         }
     }
     //Find start points
     public static StartPoints findStartPoint(String[][] maze, int line, int column){
-        for(int i = 0; i < line; i++){
+        for (int i = 0; i < line; i++){
             for (int j = 0; j < column; j++){
-                if(maze[i][j].equals("X")) return  new StartPoints(i, j);
+                if (maze[i][j].equalsIgnoreCase("X")) return new StartPoints(i, j);
             }
         }
         return null;
